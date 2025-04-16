@@ -36,6 +36,9 @@
 namespace dxvk {
   std::unique_ptr<RtxOptions> RtxOptions::pInstance = nullptr;
 
+  // Initialize the option
+  RtxOption<SRProvider> RtxOptions::srProvider("rtx.superResolution", "provider", "DXVK_RTX_SR_PROVIDER", SRProvider::DLSS);
+
   void RtxOptions::updateUpscalerFromDlssPreset() {
     if (RtxOptions::Automation::disableUpdateUpscaleFromDlssPreset()) {
       return;
@@ -503,5 +506,12 @@ namespace dxvk {
            TerrainBaker::needsTerrainBaking() ||
            enableAlwaysCalculateAABB() ||
            NeeCachePass::enable();
+  }
+
+  // Update isSREnabled() to check for either DLSS or XeSS
+  bool RtxOptions::isSREnabled() const {
+    return enable && 
+           ((dlssEnabled && srProvider.getValue() == SRProvider::DLSS) || 
+            (srProvider.getValue() == SRProvider::XESS));
   }
 }

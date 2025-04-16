@@ -408,6 +408,21 @@ nrc_dep = declare_dependency(
   include_directories : nrc_include_path
 )
 
+# Add XeSS include and library paths
+xess_root_path = get_option('xess_sdk_path')
+if xess_root_path == ''
+  xess_root_path = '../../../XeSS_SDK_2.0.1'
+endif
+
+xess_include_dir = include_directories(join_paths('../../', xess_root_path, 'inc'))
+xess_lib_path = join_paths(global_src_root_norm, xess_root_path, 'lib')
+
+xess_lib = cc.find_library('libxess', dirs : xess_lib_path)
+xess_dep = declare_dependency(
+  dependencies : [ xess_lib ],
+  include_directories : [ xess_include_dir ]
+)
+
 generated_dxvk_shaders = glsl_generator.process(dxvk_shaders)
 rtx_shaders = custom_target(
   'rtx_shaders',
@@ -423,7 +438,7 @@ dxvk_embedded_data_files = files([
 
 dxvk_generated_embedded_files = embedding_compiler.process(dxvk_embedded_data_files)
 
-dxvk_deps = [ thread_dep, vkcommon_dep, dxvk_extradep, usd_dep, lssUsd_dep, nrc_dep, nrd_dep, dlss_dep, tracy_dep, tracy_dep_dynamic, aftermath_dep, nvapi_dep, reflex_dep ]
+dxvk_deps = [ thread_dep, vkcommon_dep, dxvk_extradep, usd_dep, lssUsd_dep, nrc_dep, nrd_dep, dlss_dep, tracy_dep, tracy_dep_dynamic, aftermath_dep, nvapi_dep, reflex_dep, xess_dep ]
 
 if enable_rtxio
   dxvk_deps += rtxio_dep

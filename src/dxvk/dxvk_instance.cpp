@@ -326,6 +326,11 @@ namespace dxvk {
       m_vki->vkCreateDebugUtilsMessengerEXT(m_vki->instance(), &info, nullptr, &m_debugUtilsMessenger);
       // NV-DXVK end
     }
+
+    // XeSS runtime check
+    if (!checkXeSSRuntime()) {
+      Logger::warn("XeSS runtime check failed.");
+    }
   }
   
   
@@ -630,5 +635,31 @@ namespace dxvk {
     }
   }
   // NV-DXVK end 
-  
+
+  bool checkXeSSRuntime() {
+    // Check for XeSS DLL
+    HMODULE xessModule = LoadLibraryA("libxess.dll");
+    if (xessModule == nullptr) {
+      Logger::warn("XeSS: libxess.dll not found. XeSS will be disabled.");
+      return false;
+    }
+    FreeLibrary(xessModule);
+    
+    // Check for required MSVC runtime DLLs
+    const char* requiredDlls[] = {
+      "msvcp140.dll", "vcruntime140.dll", "vcruntime140_1.dll"
+    };
+    
+    for (const auto& dll : requiredDlls) {
+      HMODULE module = LoadLibraryA(dll);
+      if (module == nullptr) {
+        Logger::warn(str::format("XeSS: Required runtime DLL not found: ", dll, 
+                                ". XeSS may not function correctly."));
+      } else {
+        FreeLibrary(module);
+      }
+    }
+    
+    return true;
+  }
 }

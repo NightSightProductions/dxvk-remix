@@ -156,6 +156,12 @@ namespace dxvk {
     Count
   };
 
+  enum class SRProvider {
+    DLSS,
+    XESS,
+    None
+  };
+
   class RtxOptions {
     friend class ImGUI;
     friend class ImGuiSplash;
@@ -1062,7 +1068,7 @@ namespace dxvk {
       
       // Path Options
       RTX_OPTION_CLAMP(russianRouletteMaxContinueProbability, 0.0f, 1.0f);
-      // Note: Clamped to 15 due to usage on GPU.
+      // Note: Clamp to 15 due to usage on GPU.
       RTX_OPTION_CLAMP(pathMinBounces, static_cast<uint8_t>(0), static_cast<uint8_t>(15));
       // Note: Clamp to the minimum bounce count additionally.
       RTX_OPTION_CLAMP(pathMaxBounces, pathMinBounces(), static_cast<uint8_t>(15));
@@ -1392,5 +1398,7 @@ namespace dxvk {
       return (float(RtxOptions::userBrightness() - 50) / 100.f)
         * RtxOptions::userBrightnessEVRange();
     }
+
+    static RtxOption<SRProvider> srProvider;
   };
 }
