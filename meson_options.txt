@@ -51,6 +51,11 @@ option('tracy_shared_libs', type : 'boolean', value : false, description : 'Buil
 
 option('enable_rtxio', type : 'boolean', value : true)
 
+option('enable_xess', 
+  type: 'boolean',
+  value: true,
+  description: 'Enable Intel XeSS Super Resolution support')
+
 option('xess_sdk_path', 
   type : 'string', 
   value : '', 

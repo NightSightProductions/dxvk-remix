@@ -247,6 +247,40 @@ if enable_rtxio == true
   dxvk_extradep += rtxio_lib
 endif
 
+# XeSS SDK configuration
+xess_enabled = get_option('enable_xess')
+if xess_enabled
+  add_project_arguments('-DENABLE_XESS', language : 'cpp')
+  vs_project_defines += 'ENABLE_XESS;'
+  
+  xess_root_path = join_paths(global_src_root_norm, 'include/XeSS_SDK_2.0.1')
+  xess_include_path = include_directories(join_paths(xess_root_path, 'inc'))
+  xess_lib_path = join_paths(xess_root_path, 'lib')
+  
+  xess_lib = dxvk_compiler.find_library('libxess', dirs: xess_lib_path, required: false)
+  if not xess_lib.found()
+    # If not found, create empty dependency to allow build to continue
+    warning('XeSS library not found, creating placeholder for compilation')
+    xess_lib = declare_dependency()
+  endif
+  
+  xess_dep = declare_dependency(
+    dependencies: [xess_lib],
+    include_directories: xess_include_path
+  )
+  
+  # Add XeSS DLL copy target
+  copy_xess_dll_target = custom_target('copy_xess_dll',
+    output: ['copy_xess_dll'],
+    build_by_default: true,
+    depends: [],
+    command: [copy_script_path, xess_lib_path, output_dir, 'libxess.dll']
+  )
+else
+  # Empty dependency when XeSS is disabled
+  xess_dep = declare_dependency()
+endif
+
 # Shader Compile Tools
 glsl_compiler = find_program('external/glslangvalidator/glslangValidator')
 slang_compiler = find_program('external/slang/slangc')
@@ -593,6 +627,14 @@ if not dxvk_is_ninja
       depends          : [],
       command          : [copy_script_path, rtxio_bin_path, output_dir, 'rtxio.*'] )
   endif
+
+  if xess_enabled
+    copy_xess_dll_target = custom_target('copy_xess_dll',
+      output           : ['copy_xess_dll'],
+      build_by_default : true,
+      depends          : [],
+      command          : [copy_script_path, xess_lib_path, output_dir, 'libxess.dll'] )
+  endif
 endif
 
 # Build meson dependency types
@@ -630,6 +672,15 @@ embedded_dep = declare_dependency(
   dependencies : [ ],
   include_directories : embedded_includes
 )
+
+# Add XeSS to dxvk_deps
+dxvk_deps = [
+  thread_dep, vkcommon_dep, dxvk_extradep, 
+  usd_dep, lssUsd_dep, nrc_dep, nrd_dep, dlss_dep,
+  tracy_dep, tracy_dep_dynamic, aftermath_dep, 
+  nvapi_dep, reflex_dep, xess_dep
+]
+
 subdir('src')
 
 enable_tests = get_option('enable_tests')
@@ -840,6 +891,13 @@ if dxvk_is_ninja
         command          : [copy_script_path, rtxio_bin_path, output_path, 'rtxio.*'] )
     endif
 
+    if xess_enabled
+      copy_xess_dll = custom_target('copy_xess_dll_' + target_suffix,
+        output           : ['copy_xess_dll_' + target_suffix],
+        depends          : [],
+        command          : [copy_script_path, xess_lib_path, output_path, 'libxess.dll'] )
+    endif
+
     # the copy target is special
     # if we use custom_target for the d3d9 DLL, meson generates a target that does nothing in ninja
     # as a workaround, we do the copy as part of the test_* target itself
@@ -860,6 +918,10 @@ if dxvk_is_ninja
 
     if enable_rtxio == true
       copy_target_depends += copy_rtxio
+    endif
+
+    if xess_enabled
+      copy_target_depends += copy_xess_dll
     endif
 
     if src_exe != ''

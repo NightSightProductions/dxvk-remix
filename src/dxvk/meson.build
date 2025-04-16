@@ -371,6 +371,14 @@ dxvk_src = files([
   'imgui/implot_items.cpp',
 ])
 
+dxvk_rtx_src = files([
+  # Existing files...
+  
+  # Add XeSS files
+  'rtx_xess.h',
+  'rtx_xess.cpp',
+])
+
 nrc_include_dir = include_directories(join_paths('../../', 'submodules/nrc/include'))
 nrc_dep = declare_dependency(
   include_directories : nrc_include_dir

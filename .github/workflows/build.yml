@@ -34,24 +34,6 @@ jobs:
     - name: Setup Meson
       run: pip install meson==0.62.1
     
-    - name: Setup XeSS SDK
-      run: |
-        mkdir -p XeSS_SDK_2.0.1/inc
-        # Create placeholder header files to satisfy the include requirements
-        # This is useful if you just need to compile without actually using XeSS functionality
-        cat > XeSS_SDK_2.0.1/inc/xess.h << 'EOF'
-        // Placeholder XeSS header file
-        #pragma once
-        #define XESS_API
-        typedef enum { XESS_INITIALIZED = 0 } XeSSStatus;
-        EOF
-        
-        # Adjust include path in meson.build if needed
-        sed -i 's|../../../../../XeSS_SDK_2.0.1/inc|./XeSS_SDK_2.0.1/inc|g' src/dxvk/meson.build
-        
-        # Verify the directory structure
-        ls -la XeSS_SDK_2.0.1/inc/
-
     - name: Build
       shell: pwsh
       run: |
